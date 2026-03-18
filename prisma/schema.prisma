@@ -1,0 +1,30 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String  @id @default(cuid())
+  name      String
+  email     String  @unique
+  image     String?
+  posts     Post[]
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  text      String
+  mediaUrl  String?
+  mediaType String?  // "image" or "video"
+  metadata  String?  // JSON string for polls, location, etc.
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  likes     Int      @default(0)
+}
