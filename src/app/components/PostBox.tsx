@@ -5,9 +5,10 @@ type PostBoxProps = {
   onPost: (text: string, mediaUrl: string, mediaType: "image" | "video", metadata?: string) => Promise<void>;
   name?: string;
   email?: string;
+  isModal?: boolean;
 };
 
-export default function PostBox({ onPost, name, email }: PostBoxProps) {
+export default function PostBox({ onPost, name, email, isModal }: PostBoxProps) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,18 +115,24 @@ export default function PostBox({ onPost, name, email }: PostBoxProps) {
   }
 
   return (
-    <div className="border-b border-border bg-black p-4 relative w-full">
+    <div className={`${isModal ? "" : "p-4 bg-background"} relative w-full overflow-hidden transition-all`}>
       <div className="flex gap-4">
         {/* Avatar */}
-        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-400 shrink-0" />
+        <div className="h-12 w-12 rounded-full bg-gray-300 shrink-0" />
 
         <div className="flex-1">
           <textarea
             aria-label="Create a post"
             value={text}
-            onChange={onChange}
-            placeholder="What is happening?!"
-            className="w-full resize-none bg-transparent py-2 text-[20px] text-white outline-none placeholder:text-muted-foreground"
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            placeholder="What's happening?!"
+            className="w-full resize-none bg-transparent py-2 text-[19px] text-foreground outline-none placeholder:text-muted-foreground/60 transition-all"
             rows={text.split('\n').length || 1}
           />
 
@@ -149,15 +156,15 @@ export default function PostBox({ onPost, name, email }: PostBoxProps) {
                      setPollOptions(newOpts);
                    }}
                    placeholder={`Option ${i+1}`}
-                   className="w-full bg-black border border-border rounded-lg p-2 text-sm text-white focus:border-primary outline-none"
+                   className="w-full bg-background rounded-md p-2 text-sm focus:bg-muted outline-none transition-all"
                  />
                ))}
-               <button onClick={() => setPollOptions([...pollOptions, ""])} className="text-sm font-bold text-primary hover:underline transition-all">+ Add option</button>
+               <button onClick={() => setPollOptions([...pollOptions, ""])} className="text-xs font-bold text-primary hover:underline">+ Add option</button>
             </div>
           )}
 
           {mediaUrl && (
-            <div className="mt-2 mb-4 overflow-hidden rounded-2xl border border-border group relative">
+            <div className="mt-2 mb-4 overflow-hidden rounded-lg group relative">
               {mediaType === "video" ? (
                 <video src={mediaUrl} className="w-full h-auto" controls />
               ) : (
@@ -165,56 +172,50 @@ export default function PostBox({ onPost, name, email }: PostBoxProps) {
               )}
               <button 
                 onClick={() => setMediaUrl("")}
-                className="absolute top-2 right-2 p-1.5 bg-black/70 rounded-full hover:bg-black/90 transition-all shadow-lg"
+                className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-all font-bold text-white text-xs px-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                X
               </button>
             </div>
           )}
 
           {/* Icons and Submit Row */}
-          <div className="flex items-center justify-between border-t border-border/10 mt-2 pt-3">
-            <div className="flex gap-1 -ml-2 relative">
+          <div className="flex items-center justify-between mt-2 pt-2">
+            <div className="flex gap-2 relative">
                <button 
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   title="Media"
-                  className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
+                  className="p-2 text-primary hover:bg-muted rounded-md transition-colors"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                </button>
 
                {/* GIF Picker Popover */}
                <div className="relative">
-                 <button onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false); }} title="GIF" className={`p-2 rounded-full transition-colors ${showGifPicker ? 'bg-primary/10 text-primary' : 'text-primary hover:bg-primary/10'}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h2.5"/><path d="M7 12h2.5"/><path d="M7 16h2.5"/><path d="M14 8h3"/><path d="M14 12h3"/><path d="M14 16h3"/></svg>
+                 <button onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false); }} title="GIF" className={`p-2 rounded-md transition-colors ${showGifPicker ? 'bg-muted text-primary' : 'text-primary hover:bg-muted'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h2.5"/><path d="M7 12h2.5"/><path d="M7 16h2.5"/><path d="M14 8h3"/><path d="M14 12h3"/><path d="M14 16h3"/></svg>
                  </button>
                  {showGifPicker && (
-                   <div className="absolute top-full left-0 mt-2 w-[350px] bg-black border border-border rounded-2xl shadow-[0_8px_30px_rgb(255,255,255,0.1)] z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                      {/* GIF Header */}
-                      <div className="px-4 py-3 flex items-center border-b border-border">
-                        <h3 className="text-lg font-bold text-white">Choose a GIF</h3>
-                      </div>
-                      {/* Search */}
-                      <div className="p-3">
+                   <div className="absolute top-full left-0 mt-2 w-72 bg-background border border-border rounded-lg shadow-xl z-[100] overflow-hidden">
+                      <div className="p-2">
                         <input 
                           autoFocus
                           placeholder="Search GIFs"
                           value={gifSearchQuery}
                           onChange={(e) => setGifSearchQuery(e.target.value)}
-                          className="w-full bg-[#202327] border-none rounded-full py-2 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-muted-foreground"
+                          className="w-full bg-muted rounded-md py-1.5 px-3 text-sm outline-none transition-all"
                         />
                       </div>
-                      <div className="px-3 pb-3 max-h-[300px] overflow-y-auto custom-scrollbar">
-                         <div className="columns-2 gap-2">
+                      <div className="px-2 pb-2 max-h-60 overflow-y-auto">
+                         <div className="grid grid-cols-2 gap-2">
                            {filteredGifs.map((gif, i) => (
                              <img 
                                key={gif.id} 
                                src={gif.url} 
                                alt={gif.title}
-                               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                onClick={() => selectGif(gif.url)}
-                               className="mb-2 w-full object-cover rounded-xl cursor-pointer hover:opacity-80 transition-all active:scale-95 bg-muted"
+                               className="w-full object-cover rounded cursor-pointer hover:opacity-80 transition-all bg-muted"
                              />
                            ))}
                          </div>
@@ -225,39 +226,39 @@ export default function PostBox({ onPost, name, email }: PostBoxProps) {
 
                {/* Emoji Picker Popover */}
                <div className="relative">
-                 <button onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false); }} title="Emoji" className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'bg-primary/10 text-primary' : 'text-primary hover:bg-primary/10'}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                 <button onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false); }} title="Emoji" className={`p-2 rounded-md transition-colors ${showEmojiPicker ? 'bg-muted text-primary' : 'text-primary hover:bg-muted'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                  </button>
                  {showEmojiPicker && (
-                   <div className="absolute top-full left-0 mt-2 w-72 bg-black border border-border rounded-2xl shadow-[0_8px_30px_rgb(255,255,255,0.1)] z-[100] p-3 animate-in fade-in zoom-in-95 duration-200">
-                      <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+                   <div className="absolute top-full left-0 mt-2 w-64 bg-background rounded-lg shadow-xl z-[100] p-2">
+                      <div className="grid grid-cols-6 gap-1 max-h-40 overflow-y-auto">
                         {EMOJIS.map(e => (
-                          <button key={e} onClick={() => selectEmoji(e)} className="text-2xl hover:bg-white/10 p-1.5 rounded-lg transition-all">{e}</button>
+                          <button key={e} onClick={() => selectEmoji(e)} className="text-xl hover:bg-muted p-1 rounded transition-all">{e}</button>
                         ))}
                       </div>
                    </div>
                  )}
                </div>
 
-               <button onClick={() => setShowPoll(!showPoll)} title="Poll" className={`p-2 rounded-full transition-colors ${showPoll ? 'bg-primary/10 text-primary' : 'text-primary hover:bg-primary/10'}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="15" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/></svg>
+               <button onClick={() => setShowPoll(!showPoll)} title="Poll" className={`p-2 rounded-md transition-colors ${showPoll ? 'bg-muted text-primary' : 'text-primary hover:bg-muted'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="15" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/></svg>
                </button>
-               <button onClick={handleLocation} title="Location" className={`p-2 rounded-full transition-colors ${metadata.location ? 'bg-primary/10 text-primary' : 'text-primary hover:bg-primary/10'}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+               <button onClick={handleLocation} title="Location" className={`p-2 rounded-md transition-colors ${metadata.location ? 'bg-muted text-primary' : 'text-primary hover:bg-muted'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                </button>
             </div>
 
             <button
               onClick={submit}
               disabled={loading || (!text.trim() && !mediaUrl.trim() && !showPoll)}
-              className="rounded-full bg-primary px-5 py-1.5 text-[15px] font-bold text-white transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-50"
+              className="btn text-sm"
             >
               {loading ? "..." : "Post"}
             </button>
           </div>
         </div>
       </div>
-      {error && <p className="mt-2 text-sm font-medium text-destructive">{error}</p>}
+      {error && <p className="mt-2 text-sm font-medium text-red-600">{error}</p>}
     </div>
   );
 }

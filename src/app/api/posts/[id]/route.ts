@@ -6,11 +6,14 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log("[API] DELETE request for ID:", params.id);
     await prisma.post.delete({
       where: { id: params.id },
     });
+    console.log("[API] Successfully deleted ID:", params.id);
     return NextResponse.json({ message: "Post deleted successfully" });
   } catch (error) {
+    console.error("[API] Delete error for ID:", params.id, error);
     return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
   }
 }
@@ -20,9 +23,10 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { text, pinned } = await request.json();
+    const { text, pinned, likes } = await request.json();
     const data: any = {};
     if (text !== undefined) data.text = text.slice(0, 280);
+    if (likes !== undefined) data.likes = likes;
     if (pinned !== undefined) {
       // Unpin others (optional logic, but usually only one post is pinned)
       if (pinned) {

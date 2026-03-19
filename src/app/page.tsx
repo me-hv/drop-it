@@ -3,12 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import PostBox from "@/app/components/PostBox";
 import TweetCard from "@/app/components/TweetCard";
+import SimplifiedPostBox from "@/app/components/SimplifiedPostBox";
 
 type PostShape = {
   id: string;
   text: string;
   authorId: string;
   likes: number;
+  mediaUrl?: string | null;
+  mediaType?: string | null;
+  metadata?: string | null;
+  pinned: boolean;
   createdAt: string;
   author: { name: string; email: string };
 };
@@ -53,11 +58,10 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
-      <h1 className="text-4xl font-black tracking-tighter">TXT</h1>
-      <p className="text-sm text-gray-500 mb-8">A premium social feed.</p>
+    <main className="min-h-screen py-4">
+      <SimplifiedPostBox />
 
-      <PostBox onPost={handlePost} name={authorName} email={authorEmail} />
+      {/* Feed */}
 
       {loading && <p className="text-gray-500">Loading posts…</p>}
       {error && <p className="text-red-500">{error}</p>}
