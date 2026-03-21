@@ -16,7 +16,7 @@ export default function PostModal() {
         onClick={closePostModal}
       />
       
-      <div className="relative w-full max-w-[600px] bg-background rounded-[1.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-white/10">
+      <div className="relative w-full max-w-[600px] bg-background rounded-[1.5rem] shadow-2xl animate-in fade-in zoom-in-95 duration-200 border border-white/10">
         <div className="px-6 py-4 flex items-center justify-between border-b border-white/5">
           <button onClick={closePostModal} className="text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
           <span className="font-extrabold text-[17px]">New Thread</span>
@@ -24,22 +24,7 @@ export default function PostModal() {
         </div>
         
         <div className="p-6">
-            <PostBox 
-              isModal={true}
-              name="The Creator" 
-              email="hello@twitter-clone.local" 
-              onPost={async (text, mediaUrl, mediaType) => {
-                  const res = await fetch("/api/posts", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text, authorName: "The Creator", authorEmail: "hello@twitter-clone.local", mediaUrl, mediaType }),
-                  });
-                  if (res.ok) {
-                    closePostModal();
-                    window.location.reload(); 
-                  }
-              }} 
-            />
+            <PostBox isModal />
         </div>
       </div>
     </div>

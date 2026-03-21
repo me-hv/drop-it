@@ -10,28 +10,36 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { text, authorEmail, authorName, mediaUrl, mediaType, metadata } = await request.json();
+  try {
+    const { text, authorEmail, authorName, mediaUrl, mediaType, metadata } = await request.json();
 
-  if (!text?.trim() && !mediaUrl?.trim() && !metadata) {
-    return NextResponse.json({ error: "Post is empty" }, { status: 400 });
-  }
+    if (!text?.trim() && !mediaUrl?.trim() && !metadata) {
+      return NextResponse.json({ error: "Post is empty" }, { status: 400 });
+    }
 
-  let author = await prisma.user.findUnique({ where: { email: authorEmail } });
-  if (!author) {
-    author = await prisma.user.create({
-      data: { email: authorEmail, name: authorName || "Anonymous" }
+    let author = await prisma.user.findUnique({ where: { email: authorEmail } });
+    if (!author) {
+      author = await prisma.user.create({
+        data: { email: authorEmail, name: authorName || "Anonymous" }
+      });
+    }
+
+    const post = await prisma.post.create({
+      data: {
+        text: text?.slice(0, 280) || "",
+        mediaUrl: mediaUrl || null,
+        mediaType: mediaType || null,
+        metadata: metadata || null,
+        authorId: author.id,
+      },
+      include: { author: true },
     });
+    return NextResponse.json(post, { status: 201 });
+  } catch (error: any) {
+    console.error("Error creating post:", error);
+    return NextResponse.json(
+      { error: "Failed to create post", details: error.message },
+      { status: 500 }
+    );
   }
-
-  const post = await prisma.post.create({
-    data: {
-      text: text?.slice(0, 280) || "",
-      mediaUrl: mediaUrl || null,
-      mediaType: mediaType || null,
-      metadata: metadata || null,
-      authorId: author.id,
-    },
-    include: { author: true },
-  });
-  return NextResponse.json(post, { status: 201 });
 }

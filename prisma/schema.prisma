@@ -9,17 +9,25 @@ generator client {
 
 model User {
   id          String   @id @default(cuid())
-  name        String
+  name        String?
   email       String   @unique
   handle      String?  @unique
-  image       String?
-  coverImage  String?
+  avatar      String?
+  banner      String?
+  image       String?  // Legacy compatibility
+  coverImage  String?  // Legacy compatibility
   bio         String?
   location    String?
   website     String?
+  birthDate   String?
+  drops       Drop[]
+  totalDrops  Int      @default(0)
+  totalPosts  Int      @default(0)
   posts       Post[]
+  streak      Int      @default(0)
   followers   Follow[] @relation("following")
   following   Follow[] @relation("follower")
+  pollVotes   PollVote[]
   createdAt   DateTime @default(now())
 }
 
@@ -32,15 +40,49 @@ model Follow {
   @@id([followerId, followingId])
 }
 
-model Post {
+model Drop {
+  id          String   @id @default(cuid())
+  text        String?
+  mediaUrl    String?
+  mediaType   String?  // e.g., "audio", "video", "image"
+  duration    Int      @default(0) // duration in seconds for media
+  vibe        String   // e.g., "Hustle", "Deep", "Chill"
+  caption     String?  // AI-generated
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  isPermanent Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  saves       Int      @default(0)
+  reDrops     Int      @default(0)
+  tips        Float    @default(0)
+  pollOptions String?  // JSON stringified array of poll options
+  pollEndsAt  DateTime? // When the poll ends
+  pollVotes   PollVote[]
+  location    String?  // Tagged location
+  isPinned    Boolean  @default(false)
+}
+
+model PollVote {
   id        String   @id @default(cuid())
-  text      String
-  mediaUrl  String?
-  mediaType String?  // "image" or "video"
-  metadata  String?  // JSON string for polls, location, etc.
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
-  pinned    Boolean  @default(false)
+  dropId    String
+  drop      Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  optionIdx Int      // The index of the selected option
   createdAt DateTime @default(now())
-  likes     Int      @default(0)
+
+  @@unique([dropId, userId])
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  text        String
+  mediaUrl    String?
+  mediaType   String?
+  metadata    String?  // JSON stringified metadata (e.g., location, polls)
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  pinned      Boolean  @default(false)
+  likes       Int      @default(0)
+  createdAt   DateTime @default(now())
 }

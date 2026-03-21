@@ -1,5 +1,5 @@
 {
   "text": "Final metadata test",
-  "authorEmail": "hello@txt.local",
+  "authorEmail": "hello@dropit.local",
   "metadata": "{\"poll\": [\"Option A\", \"Option B\"], \"location\": \"Verified Lab\"}"
 }

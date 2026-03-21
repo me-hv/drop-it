@@ -143,7 +143,7 @@ export default function SettingsPage() {
                    <div className="p-4 rounded-xl border border-white/10 bg-white/5 flex items-center justify-between">
                      <div>
                        <p className="font-bold">Dark Mode</p>
-                       <p className="text-sm text-muted-foreground">Force dark aesthetic across TXT.</p>
+                       <p className="text-sm text-muted-foreground">Force dark aesthetic across DROP IT.</p>
                      </div>
                      <div className="h-6 w-11 bg-primary rounded-full relative cursor-pointer">
                         <div className="absolute right-1 top-1 h-4 w-4 bg-white rounded-full" />
@@ -171,7 +171,7 @@ export default function SettingsPage() {
                     {SETTINGS_OPTIONS.find(o => o.id === activeCategory)?.icon}
                  </div>
                  <p className="text-xl font-bold mb-2">{SETTINGS_OPTIONS.find(o => o.id === activeCategory)?.label}</p>
-                 <p className="text-muted-foreground">The {activeCategory} management panel is being finalized for the TXT platform.</p>
+                 <p className="text-muted-foreground">The {activeCategory} management panel is being finalized for the DROP IT platform.</p>
                </div>
              )}
           </div>

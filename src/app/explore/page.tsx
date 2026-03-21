@@ -1,130 +1,102 @@
 "use client";
-
-import React from "react";
-
-const TRENDING_ITEMS = [
-  { id: 1, title: "Miami RedHawks", category: "Sports", time: "Hot", images: ["/avatar1.png", "/avatar2.png"] },
-  { id: 2, title: "Survivor 50", category: "Entertainment", time: "9h ago", images: ["/avatar3.png", "/avatar4.png"] },
-  { id: 3, title: "Mina Shirakawa", category: "Sports", time: "8h ago", images: ["/avatar1.png", "/avatar3.png"] },
-  { id: 4, title: "AEW Dynamite", category: "Entertainment", time: "9h ago", images: ["/avatar2.png", "/avatar4.png"] },
-  { id: 5, title: "Liverpool FC", category: "Sports", time: "13h ago", images: ["/avatar1.png", "/avatar4.png"] },
-];
+import React, { useEffect, useState } from "react";
+import DropCard, { DropShape } from "@/app/components/DropCard";
 
 export default function ExplorePage() {
+  const [trendingDrops, setTrendingDrops] = useState<DropShape[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("All");
+
+  useEffect(() => {
+    async function loadTrending() {
+      try {
+        const res = await fetch("/api/drops");
+        if (res.ok) {
+          const data: DropShape[] = await res.json();
+          // Sort by saves + reDrops
+          const sorted = data.sort((a, b) => (b.saves + b.reDrops) - (a.saves + a.reDrops));
+          setTrendingDrops(sorted);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadTrending();
+  }, []);
+
+  const filtered = trendingDrops.filter(d => {
+    const matchesSearch = 
+      d.caption?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      d.text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.author.handle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.vibe.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (activeTab === "Audio") return d.mediaType === "audio";
+    if (activeTab === "Video") return d.mediaType === "video";
+    if (activeTab === "Images") return d.mediaType === "image";
+    if (activeTab === "Text") return !d.mediaType && d.text;
+    return true;
+  });
+
   return (
-    <div className="flex flex-col lg:flex-row gap-8 w-full max-w-[1000px] mx-auto py-6">
-      {/* Middle Column: Feed & Search */}
-      <div className="flex-1 flex flex-col gap-6">
-        {/* Search Bar */}
+    <div className="min-h-screen py-4 pb-24">
+      <div className="px-4 mb-4 mt-2">
         <div className="relative group">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-muted-foreground/60 group-focus-within:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/40 group-focus-within:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </div>
           <input 
             type="text" 
-            placeholder="Search for posts, users, or feeds"
-            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-[15px] focus:bg-white/[0.05] focus:border-primary outline-none transition-all placeholder:text-muted-foreground/40"
+            placeholder="Search vibes, keywords, or creators..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-12 pr-4 text-[15px] font-medium focus:bg-white/10 focus:border-primary outline-none transition-all placeholder:text-white/30 text-white shadow-inner"
           />
-        </div>
-
-        {/* Trending List */}
-        <div className="flex flex-col border border-white/5 rounded-2xl bg-white/[0.01] overflow-hidden">
-          {TRENDING_ITEMS.map((item, idx) => (
-            <div 
-              key={item.id} 
-              className={`p-4 flex items-center justify-between hover:bg-white/[0.03] cursor-pointer transition-colors ${idx !== TRENDING_ITEMS.length - 1 ? 'border-b border-white/5' : ''}`}
-            >
-              <div className="flex items-start gap-4">
-                <span className="text-muted-foreground/40 font-black text-lg mt-0.5">{item.id}.</span>
-                <div className="flex flex-col">
-                  <span className="font-bold text-[16px] group-hover:underline">{item.title}</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex -space-x-2">
-                       <div className="h-4 w-4 rounded-full bg-gray-500 border border-black" />
-                       <div className="h-4 w-4 rounded-full bg-gray-400 border border-black" />
-                    </div>
-                    <span className="text-xs text-muted-foreground/60">{item.category}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center">
-                {item.time === "Hot" ? (
-                  <span className="bg-red-500/10 text-red-500 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-.017 1.13-.062 1.956-.169 3.016a7.513 7.513 0 0 0-4.665 4.665C6.111 11.737 6 12.87 6 14a6 6 0 0 0 12 0c0-1.13-.111-2.263-1.166-4.319a7.513 7.513 0 0 0-4.665-4.665C12.062 3.956 12.017 3.13 12 2z"/></svg>
-                    Hot
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground/40 font-medium">{item.time}</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Discover New Feeds Header */}
-        <div className="flex items-center justify-between mt-4">
-           <div className="flex items-center gap-2">
-              <div className="text-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 21 1.9-1.9"/><path d="M20.9 5a8 8 0 0 0-11-2.9L8.2 3a8 8 0 0 0-3 11l1.9 1.9"/><circle cx="16" cy="16" r="3"/><path d="m19.8 19.8 1.9 1.9"/></svg>
-              </div>
-              <h2 className="text-lg font-bold">Discover new feeds</h2>
-           </div>
-           <button className="text-muted-foreground hover:text-foreground">
-             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-           </button>
-        </div>
-
-        {/* Feed Preview Item */}
-        <div className="p-5 border border-white/5 rounded-2xl bg-white/[0.01] hover:bg-white/[0.03] transition-colors cursor-pointer flex flex-col gap-3 group">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2z"/><path d="m12 6-3 3 3 3 3-3-3-3z"/><path d="m12 18-3-3 3-3 3 3-3 3z"/></svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-[17px] group-hover:underline">404 Media</span>
-                <span className="text-sm text-muted-foreground/60">Feed by @jasonkoebler.bsky.social</span>
-              </div>
-            </div>
-            <button className="bg-primary hover:opacity-90 px-4 py-1.5 rounded-full text-white text-sm font-bold flex items-center gap-2 transition-all shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m12 2 3 5h6l-4.5 4.5L18 18l-6-3.5L6 18l1.5-6.5L3 7h6l3-5z"/></svg>
-              Pin feed
-            </button>
-          </div>
-          <p className="text-[14px] text-muted-foreground/80 leading-relaxed font-medium">
-            Articles, videos, podcasts and conversations posted by 404 Media's journalists
-          </p>
         </div>
       </div>
 
-      {/* Right Column: Navigation */}
-      <div className="hidden lg:flex flex-col gap-8 w-64 shrink-0">
-        <div className="flex flex-col gap-1">
-          {[
-            { icon: "🔥", label: "Discover", active: true },
-            { icon: "👥", label: "Following", active: false },
-            { icon: "📺", label: "Video", active: false },
-          ].map((nav) => (
-            <button 
-              key={nav.label}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-[15px] ${nav.active ? 'bg-primary/10 text-primary' : 'hover:bg-white/5 text-muted-foreground hover:text-foreground'}`}
-            >
-              <span className="text-lg">{nav.icon}</span>
-              {nav.label}
-            </button>
-          ))}
-          <button className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all font-bold text-[15px]">
-            <span className="text-lg text-muted-foreground/40">+</span>
-            More feeds
-          </button>
-        </div>
+      {/* Explore Tabs */}
+      <div className="flex border-b border-white/5 px-2 mb-6 overflow-x-auto no-scrollbar">
+         {["All", "Audio", "Video", "Images", "Text"].map((tab) => (
+           <div 
+             key={tab} 
+             onClick={() => setActiveTab(tab)}
+             className={`flex-1 min-w-[75px] text-center py-4 font-black text-[11px] px-2 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-all relative ${activeTab === tab ? 'text-primary' : 'text-white/40'}`}
+           >
+              {tab}
+              {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-lg shadow-[0_0_10px_rgba(29,155,240,0.5)]" />}
+           </div>
+         ))}
+      </div>
 
-        <div className="flex flex-wrap gap-x-4 gap-y-2 px-4 text-[13px] text-muted-foreground/40 font-medium whitespace-nowrap">
-          <a href="#" className="hover:underline">Feedback</a>
-          <a href="#" className="hover:underline">Privacy</a>
-          <a href="#" className="hover:underline">Terms</a>
-          <a href="#" className="hover:underline">Help</a>
-        </div>
+      <div className="px-6 mb-4 flex items-center gap-3">
+         <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-orange-500 to-red-600 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)] border border-red-400/30">
+           <svg viewBox="0 0 24 24" fill="none" className="w-[18px] h-[18px] stroke-white"><path strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>
+         </div>
+         <h2 className="text-xl font-black uppercase tracking-widest text-white">Trending {activeTab !== "All" ? activeTab : "Now"}</h2>
+      </div>
+
+      <div className="flex flex-col border-t border-white/5">
+        {loading ? (
+          <p className="text-primary p-8 text-center animate-pulse tracking-widest text-xs font-bold uppercase mt-8">Scanning global frequencies...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-white/40 p-12 text-center tracking-widest text-sm uppercase font-bold mt-8">No trending drops found</p>
+        ) : (
+          filtered.map((drop, idx) => (
+             <div key={drop.id} className="relative">
+                <div className="absolute top-4 right-4 z-10 font-black text-[50px] text-white/[0.04] leading-none pointer-events-none transition-transform hover:scale-110">
+                  #{idx + 1}
+                </div>
+                <DropCard drop={drop} />
+             </div>
+          ))
+        )}
       </div>
     </div>
   );

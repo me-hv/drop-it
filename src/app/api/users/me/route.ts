@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-const ME_EMAIL = "hello@twitter-clone.local";
+import { cookies } from "next/headers";
 
 export async function GET() {
   try {
+    const cookieStore = cookies();
+    const handle = cookieStore.get('mocked_handle')?.value;
+
+    if (!handle) {
+       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     let user = await (prisma.user as any).findUnique({
-      where: { email: ME_EMAIL },
+      where: { handle },
       include: { 
-        posts: { take: 10, orderBy: { createdAt: 'desc' } },
+        drops: { 
+          where: { createdAt: { lte: new Date() } },
+          take: 10, 
+          orderBy: { createdAt: 'desc' } 
+        },
         _count: {
           select: {
             followers: true,
@@ -19,26 +29,7 @@ export async function GET() {
     });
 
     if (!user) {
-      // Create a default user if not found
-      user = await (prisma.user as any).create({
-        data: {
-          email: ME_EMAIL,
-          name: "The Creator",
-          handle: "thecreator",
-          bio: "Building the future of minimal and artistic social media on TXT. 🎨✨",
-          website: "https://txt.social",
-          location: "Metaverse"
-        },
-        include: { 
-          posts: { take: 10, orderBy: { createdAt: 'desc' } },
-          _count: {
-            select: {
-              followers: true,
-              following: true
-            }
-          }
-        }
-      });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json(user);
@@ -51,6 +42,10 @@ export async function GET() {
 export async function PATCH(request: Request) {
   let requestData: any = {};
   try {
+    const cookieStore = cookies();
+    const sessionHandle = cookieStore.get('mocked_handle')?.value;
+    if (!sessionHandle) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     requestData = await request.json();
     console.log("[API] PATCH /api/users/me - Request Data:", requestData);
     const { name, bio, location, website, handle, image, coverImage } = requestData;
@@ -72,7 +67,7 @@ export async function PATCH(request: Request) {
     console.log("[API] Attempting Prisma update with:", updateData);
 
     const user = await prisma.user.update({
-      where: { email: ME_EMAIL },
+      where: { handle: sessionHandle },
       data: updateData
     });
 

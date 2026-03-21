@@ -26,10 +26,10 @@ export default function SideDock() {
     <div className="flex h-full flex-col justify-between items-center w-full">
       <nav className="flex flex-col gap-4 w-full items-center">
         {/* Logo */}
-        <div className="mb-4">
-          <div className="h-12 w-12 flex items-center justify-center text-primary font-black text-xl italic tracking-tighter">
-             TXT
-          </div>
+        <div className="flex gap-3 justify-center xl:justify-start items-center py-2">
+           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center transform transition-transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+             <span className="font-black text-black text-[10px] tracking-tighter leading-none">DROP<br/>IT</span>
+           </div>
         </div>
 
         {mainItems.map((item, i) => {
