@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import * as React from "react";
 
 export type DropShape = {
   id: string;
@@ -22,16 +22,17 @@ export type DropShape = {
 };
 
 export default function DropCard({ drop: initialDrop }: { drop: DropShape }) {
-  const [showMenu, setShowMenu] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(initialDrop.text || "");
-  const [isPinned, setIsPinned] = useState(initialDrop.isPinned);
-  const [currentText, setCurrentText] = useState(initialDrop.text || initialDrop.caption);
-  const [loading, setLoading] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showMenu, setShowMenu] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editText, setEditText] = React.useState(initialDrop.text || "");
+  const [isPinned, setIsPinned] = React.useState(initialDrop.isPinned);
+  const [currentText, setCurrentText] = React.useState(initialDrop.text || initialDrop.caption);
+  const [loading, setLoading] = React.useState(false);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const carouselRef = React.useRef<HTMLDivElement>(null);
 
   const userHandle = typeof window !== "undefined" ? localStorage.getItem("drops_handle") : null;
   const isOwner = userHandle === initialDrop.author.handle;
@@ -46,9 +47,7 @@ export default function DropCard({ drop: initialDrop }: { drop: DropShape }) {
     setCurrentIndex((currentIndex - 1 + max) % max);
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!window.confirm("Are you sure you want to drop this from the timeline forever?")) return;
+  const confirmDelete = async () => {
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/drops/${initialDrop.id}`, { method: "DELETE" });
@@ -58,10 +57,12 @@ export default function DropCard({ drop: initialDrop }: { drop: DropShape }) {
         const d = await res.json();
         alert(d.error || "Failed to delete post.");
         setIsDeleting(false);
+        setShowDeleteConfirm(false);
       }
     } catch (err) {
       alert("Error deleting post.");
       setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -89,6 +90,7 @@ export default function DropCard({ drop: initialDrop }: { drop: DropShape }) {
   };
 
   const handleSaveEdit = async () => {
+    if (!editText.trim()) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/drops/${initialDrop.id}`, {
@@ -167,7 +169,7 @@ export default function DropCard({ drop: initialDrop }: { drop: DropShape }) {
                      </button>
                      <div className="h-px bg-white/5 mx-2 my-1" />
                      <button 
-                       onClick={handleDelete}
+                       onClick={(e) => { e.stopPropagation(); setShowMenu(false); setShowDeleteConfirm(true); }}
                        disabled={isDeleting}
                        className="w-full text-left px-4 py-2.5 text-[14px] font-black text-red-500 hover:bg-red-500/10 flex items-center gap-3 transition-colors uppercase tracking-widest"
                      >
@@ -325,6 +327,44 @@ export default function DropCard({ drop: initialDrop }: { drop: DropShape }) {
             <span className="text-[13px] font-black uppercase tracking-[0.2em] text-yellow-500/80">Tip</span>
          </button>
       </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300"
+          onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(false); }}
+        >
+          <div 
+            className="w-full max-w-[320px] bg-[#050505] border border-white/10 rounded-[2rem] p-8 shadow-2xl flex flex-col items-center text-center gap-6 animate-in zoom-in-95 duration-300 shadow-red-500/5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-white uppercase tracking-tight">Drop Forever?</h3>
+              <p className="text-white/40 text-[13px] font-bold leading-relaxed px-2">This action is irreversible. The frequency will be removed from the flow.</p>
+            </div>
+
+            <div className="flex flex-col w-full gap-3 mt-2">
+               <button 
+                 onClick={confirmDelete}
+                 disabled={isDeleting}
+                 className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[13px] transition-all shadow-xl shadow-red-600/20 active:scale-95 disabled:opacity-50"
+               >
+                 {isDeleting ? "Dropping..." : "Delete Permanently"}
+               </button>
+               <button 
+                 onClick={() => setShowDeleteConfirm(false)}
+                 className="w-full py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white/60 font-black uppercase tracking-widest text-[12px] transition-all border border-white/5"
+               >
+                 Cancel
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

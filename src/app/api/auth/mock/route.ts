@@ -31,7 +31,8 @@ export async function POST(req: Request) {
     
     return response;
   } catch (error) {
-    console.error("Auth error:", error);
-    return NextResponse.json({ error: "Auth failed" }, { status: 500 });
+    console.error("Auth error details:", error);
+    const errorMessage = error instanceof Error ? error.message : "Auth failed";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

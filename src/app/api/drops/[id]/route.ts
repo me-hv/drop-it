@@ -52,7 +52,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { text } = await request.json();
+    const { text: newText, isPinned: newPinnedStatus } = await request.json();
 
     const drop = await prisma.drop.findUnique({
       where: { id: params.id },
@@ -67,19 +67,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden - You can only edit your own drops." }, { status: 403 });
     }
 
-    const { text: newText, isPinned: newPinnedStatus } = await request.json();
-
-    // We use a raw query for isPinned because the Prisma client is currently locked
-    if (newPinnedStatus !== undefined) {
-      await prisma.$executeRaw`
-        UPDATE "Drop" SET "isPinned" = ${newPinnedStatus ? 1 : 0} WHERE "id" = ${params.id}
-      `;
-    }
-
     const updatedDrop = await prisma.drop.update({
       where: { id: params.id },
       data: { 
-        text: newText !== undefined ? (newText || "") : (drop as any).text
+        text: newText !== undefined ? (newText || "") : drop.text,
+        isPinned: newPinnedStatus !== undefined ? newPinnedStatus : drop.isPinned
       },
       include: { author: true }
     });
