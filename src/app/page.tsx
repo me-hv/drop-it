@@ -39,10 +39,10 @@ export default function HomePage() {
     <main className="min-h-screen pb-20">
       <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/5 pb-0">
          <div className="flex items-center justify-between px-6 py-4">
-            <h1 className="text-xl font-black tracking-tighter uppercase italic">Drops</h1>
+            <h1 className="text-xl font-black tracking-tighter uppercase italic">NEW DROPS</h1>
             <div className="flex items-center gap-2">
                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-               <span className="text-[10px] font-black text-primary uppercase tracking-widest">Live Flow</span>
+               <span className="text-[10px] font-black text-primary uppercase tracking-widest">Live Releases</span>
             </div>
          </div>
       </header>

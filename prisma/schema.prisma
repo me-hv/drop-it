@@ -28,6 +28,7 @@ model User {
   followers   Follow[] @relation("following")
   following   Follow[] @relation("follower")
   pollVotes   PollVote[]
+  savedDrops  SavedDrop[]
   createdAt   DateTime @default(now())
 }
 
@@ -60,6 +61,10 @@ model Drop {
   pollVotes   PollVote[]
   location    String?  // Tagged location
   isPinned    Boolean  @default(false)
+  quotedId    String?
+  quoted      Drop?    @relation("QuoteRelation", fields: [quotedId], references: [id])
+  quotes      Drop[]   @relation("QuoteRelation")
+  savedDrops  SavedDrop[]
 }
 
 model PollVote {
@@ -85,4 +90,15 @@ model Post {
   pinned      Boolean  @default(false)
   likes       Int      @default(0)
   createdAt   DateTime @default(now())
+}
+
+model SavedDrop {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dropId    String
+  drop      Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, dropId])
 }

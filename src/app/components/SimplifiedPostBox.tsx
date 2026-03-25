@@ -18,7 +18,7 @@ export default function SimplifiedPostBox() {
       
       {/* Placeholder Text */}
       <div className="flex-1 text-muted-foreground/60 text-lg">
-        What's up?
+        Drop a new snippet or update...
       </div>
       
       {/* Image Icon */}

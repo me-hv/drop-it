@@ -15,28 +15,22 @@ export default function SideDock() {
 
   const NAV_ITEMS = [
     { 
-      label: "FEED", 
+      label: "RELEASES", 
       href: "/", 
       icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> 
     },
     { 
-      label: "EXPLORE", 
+      label: "CHARTS", 
       href: "/explore", 
       icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 
     },
     { 
-      label: "POST", 
-      href: "#", 
-      isAction: true, 
-      icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg> 
-    },
-    { 
-      label: "UPDATE", 
+      label: "NOTIFS", 
       href: "/updates", 
       icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg> 
     },
     { 
-      label: "MESSAGES", 
+      label: "DM", 
       href: "/messages", 
       icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> 
     },
@@ -44,6 +38,11 @@ export default function SideDock() {
       label: "PROFILE", 
       href: "/profile/me", 
       icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> 
+    },
+    { 
+      label: "SAVED", 
+      href: "/saved", 
+      icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> 
     },
     { 
       label: "SETTINGS", 
@@ -62,67 +61,43 @@ export default function SideDock() {
   };
 
   return (
-    <div className="flex h-full flex-col justify-between w-full overflow-hidden">
+    <div className="flex h-full flex-col justify-between w-full overflow-hidden bg-transparent border-r border-white/5">
       <div className="flex flex-col w-full">
-        {/* Hamburger / Brand Section */}
-        <div className="px-3 h-20 flex items-center mb-2">
-            <button 
-              onClick={toggleSidebar}
-              className="w-12 h-12 rounded-2xl text-white/50 hover:bg-white/10 hover:text-white flex items-center justify-center transition-all bg-white/5 shadow-inner group flex-shrink-0"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} className="group-hover:rotate-90 transition-transform duration-500">
-                <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
-              </svg>
-            </button>
-            <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${isSidebarCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[160px] opacity-100 ml-4'}`}>
-              <span className="font-black text-xl italic tracking-tighter whitespace-nowrap">
+        {/* Brand Section */}
+        <div className="px-6 h-24 flex items-center mb-10 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-none bg-primary flex items-center justify-center border border-white/10 shadow-lg shadow-primary/20">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
+                  <path d="M12 2v20m-5-5h10l-5-10m0 0v10"/>
+                </svg>
+              </div>
+              <span className="font-bold text-xl tracking-[0.2em] text-white uppercase">
                 DROP IT
               </span>
             </div>
         </div>
 
         {/* Navigation */}
-        <nav className="px-3 flex flex-col gap-2 lowercase">
+        <nav className="flex flex-col">
           {mainItems.map((item, i) => {
             const isActive = pathname === item.href;
             
-            if (item.isAction) {
-              return (
-                <button 
-                  key={i}
-                  onClick={openPostModal}
-                  className={`group flex h-14 w-full items-center px-3 rounded-2xl transition-all duration-500 text-white/40 hover:bg-primary/20 hover:text-primary active:scale-95`}
-                >
-                  <div className="w-6 h-6 flex items-center justify-center transition-transform duration-500 group-hover:rotate-12 flex-shrink-0">
-                    {item.icon}
-                  </div>
-                  <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${isSidebarCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[160px] opacity-100 ml-4'}`}>
-                    <span className="font-black text-sm uppercase tracking-widest whitespace-nowrap">
-                      {item.label}
-                    </span>
-                  </div>
-                </button>
-              );
-            }
-
             return (
               <Link 
                 key={i} 
                 href={item.href}
-                className={`group flex h-14 w-full items-center px-3 rounded-2xl transition-all duration-500 ${
+                className={`group flex h-14 w-full items-center px-8 transition-all duration-200 border-l-2 ${
                   isActive 
-                  ? 'bg-primary/10 text-primary' 
-                  : 'text-white/40 hover:bg-white/5 hover:text-white'
+                  ? 'bg-white/[0.03] text-white border-primary' 
+                  : 'text-white/30 border-transparent hover:text-white/60 hover:bg-white/[0.01]'
                 }`}
               >
-                <div className={`w-6 h-6 flex items-center justify-center transition-all duration-500 flex-shrink-0 group-hover:scale-110 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]' : ''}`}>
+                <div className={`w-5 h-5 flex items-center justify-center flex-shrink-0 ${isActive ? 'text-primary' : ''}`}>
                   {item.icon}
                 </div>
-                <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${isSidebarCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[160px] opacity-100 ml-4'}`}>
-                  <span className={`font-black text-sm uppercase tracking-widest whitespace-nowrap ${isActive ? 'opacity-100' : 'opacity-80'}`}>
-                    {item.label}
-                  </span>
-                </div>
+                <span className={`ml-6 font-bold text-[11px] uppercase tracking-[0.3em] whitespace-nowrap ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -130,39 +105,35 @@ export default function SideDock() {
       </div>
 
       {/* Footer Actions */}
-      <div className="px-3 pb-6 flex flex-col gap-2">
+      <div className="pb-8 flex flex-col">
         {settingsItem && (
            <Link 
               href={settingsItem.href}
-              className={`group flex h-14 w-full items-center px-3 rounded-2xl transition-all duration-500 ${
+              className={`group flex h-14 w-full items-center px-8 transition-all duration-200 border-l-2 ${
                 pathname === settingsItem.href 
-                ? 'bg-white/10 text-primary' 
-                : 'text-white/40 hover:bg-white/5 hover:text-white'
+                ? 'bg-white/[0.03] text-white border-primary' 
+                : 'text-white/20 border-transparent hover:text-white'
               }`}
             >
-              <div className="w-6 h-6 flex items-center justify-center transition-transform duration-500 group-hover:rotate-12 flex-shrink-0">
+              <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                 {settingsItem.icon}
               </div>
-              <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${isSidebarCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[160px] opacity-100 ml-4'}`}>
-                <span className="font-black text-sm uppercase tracking-widest whitespace-nowrap">
-                  {settingsItem.label}
-                </span>
-              </div>
+              <span className="ml-6 font-bold text-[11px] uppercase tracking-[0.3em] whitespace-nowrap opacity-40 group-hover:opacity-100">
+                {settingsItem.label}
+              </span>
             </Link>
         )}
         
         <button 
           onClick={handleSignOut}
-          className={`group flex h-14 w-full items-center px-3 rounded-2xl transition-all duration-500 text-white/40 hover:bg-red-500/10 hover:text-red-500`}
+          className="group flex h-14 w-full items-center px-8 transition-all duration-200 text-white/10 hover:bg-red-950/20 hover:text-red-500 border-l-2 border-transparent"
         >
-          <div className="w-6 h-6 flex items-center justify-center transition-transform duration-500 group-hover:-translate-x-1 flex-shrink-0">
+          <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
             <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </div>
-          <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${isSidebarCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[160px] opacity-100 ml-4'}`}>
-            <span className="font-black text-sm uppercase tracking-widest whitespace-nowrap">
-              SIGN OUT
-            </span>
-          </div>
+          <span className="ml-6 font-bold text-[11px] uppercase tracking-[0.3em] whitespace-nowrap opacity-40 group-hover:opacity-100">
+            LOGOUT
+          </span>
         </button>
       </div>
     </div>
