@@ -1,9 +1,40 @@
 "use client";
+
+import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = React.useState<any>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+
+  React.useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/users/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        }
+      } catch (e) {
+        console.error("Navbar: Failed to load user", e);
+      }
+    }
+    loadUser();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.removeItem("drops_handle");
+      localStorage.removeItem("userHandle");
+      window.location.reload();
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+  };
 
   const NAV_ITEMS = [
     { label: "Home", href: "/", icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
@@ -16,7 +47,7 @@ export default function Navbar() {
   ];
 
   return (
-    <div className="flex h-full flex-col justify-between p-4 xl:w-64">
+    <div className="flex h-full flex-col justify-between p-4 xl:w-64 relative">
       <div className="flex flex-col gap-2">
         <Link href="/" className="mb-2 flex h-12 w-12 items-center justify-center rounded-full hover:bg-white/10 transition-colors">
           <svg viewBox="0 0 24 24" className="h-8 w-8 text-white fill-white" aria-hidden="true"><g><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></g></svg>
@@ -44,13 +75,27 @@ export default function Navbar() {
         </button>
       </div>
 
-      <div className="flex items-center gap-3 rounded-full border border-transparent p-3 hover:bg-white/10 transition-colors cursor-pointer xl:w-full">
-         <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-400 group-hover:scale-105 transition-transform" />
-         <div className="hidden flex-col xl:flex">
-            <span className="font-bold text-[15px]">The Creator</span>
-            <span className="text-muted-foreground text-[15px]">@creator</span>
-         </div>
-         <span className="hidden ml-auto text-muted-foreground xl:block">...</span>
+      <div className="relative">
+        {showLogoutConfirm && (
+          <div className="absolute bottom-full left-0 mb-2 w-full bg-[#121214] border border-white/10 rounded-xl py-2 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+             <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-[12px] font-black text-white hover:bg-white/5 uppercase tracking-widest transition-colors">
+               Log out @{user?.handle || 'unknown'}
+             </button>
+          </div>
+        )}
+        <div 
+          onClick={() => setShowLogoutConfirm(!showLogoutConfirm)}
+          className="flex items-center gap-3 rounded-full border border-transparent p-3 hover:bg-white/10 transition-colors cursor-pointer xl:w-full"
+        >
+           <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-400 flex items-center justify-center text-xs font-black text-white overflow-hidden shrink-0">
+             {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user?.name?.[0] || 'U')}
+           </div>
+           <div className="hidden flex-col xl:flex min-w-0">
+              <span className="font-bold text-[15px] truncate text-white">{user?.name || 'Syncing...'}</span>
+              <span className="text-white/40 text-[14px] truncate">@{user?.handle || '...'}</span>
+           </div>
+           <span className="hidden ml-auto text-white/20 xl:block font-black tracking-tighter">...</span>
+        </div>
       </div>
     </div>
   );

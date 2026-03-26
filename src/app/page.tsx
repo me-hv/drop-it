@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import DropCard, { DropShape } from "@/app/components/DropCard";
-import SimplifiedPostBox from "@/app/components/SimplifiedPostBox";
+import PostBox from "@/app/components/PostBox";
 
 export default function HomePage() {
   const [drops, setDrops] = useState<DropShape[]>([]);
@@ -28,12 +28,8 @@ export default function HomePage() {
     }
   }
 
-  // Basic filter for expired drops (24h unless saved/active)
-  const filteredDrops = drops.filter(drop => {
-    const ageInHours = (Date.now() - new Date(drop.createdAt).getTime()) / (1000 * 60 * 60);
-    if (ageInHours > 24 && drop.saves < 5) return false;
-    return true;
-  });
+  // Simple feed showing all drops
+  const filteredDrops = drops;
 
   return (
     <main className="min-h-screen pb-20">
@@ -47,7 +43,9 @@ export default function HomePage() {
          </div>
       </header>
 
-      <SimplifiedPostBox />
+      <div className="border-b border-white/5">
+        <PostBox />
+      </div>
 
       <div className="h-2 bg-gradient-to-b from-white/[0.02] to-transparent border-y border-white/5" />
 

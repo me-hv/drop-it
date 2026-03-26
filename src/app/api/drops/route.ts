@@ -7,10 +7,10 @@ export async function POST(request: Request) {
     const handle = cookies().get('mocked_handle')?.value || cookies().get('drops_handle')?.value;
 
     let user = handle ? await prisma.user.findUnique({ where: { handle } }) : null;
+    
     if (!user) {
-      // DEV Fallback: If mock cookie is missing or DB was reset, try first user in system
-      user = await prisma.user.findFirst();
-      if (!user) return NextResponse.json({ error: "No user found in database. Please sign up or mock a user first." }, { status: 404 });
+      // In a real app we'd redirect to login, but for mock purposes we return an error if no user is found
+      return NextResponse.json({ error: "Unauthorized. Please sync your handle first." }, { status: 401 });
     }
 
     const { text, mediaUrl, mediaType, duration, vibe, caption, pollOptions, pollEndsAt, scheduledDate, location, quotedId } = await request.json();
@@ -65,32 +65,65 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    // We use queryRaw because the generated Prisma client is currently locked and doesn't know about 'isPinned'
-    // but the database table ALREADY has it thanks to our 'db push'.
-    const rawDrops = await prisma.$queryRaw`
-      SELECT 
-        d.*,
-        u.id as "author_id",
-        u.name as "author_name",
-        u.handle as "author_handle",
-        qd.id as "q_id",
-        qd.text as "q_text",
-        qd.mediaUrl as "q_mediaUrl",
-        qd.mediaType as "q_mediaType",
-        qu.name as "q_author_name",
-        qu.handle as "q_author_handle"
-      FROM "Drop" d
-      JOIN "User" u ON d."authorId" = u.id
-      LEFT JOIN "Drop" qd ON d."quotedId" = qd.id
-      LEFT JOIN "User" qu ON qd."authorId" = qu.id
-      WHERE d."createdAt" <= datetime('now')
-      ORDER BY d."isPinned" DESC, d."createdAt" DESC
-    `;
+    const { searchParams } = new URL(request.url);
+    const quotedId = searchParams.get("quotedId");
+    
+    // Get current user for saved state
+    const handle = cookies().get('mocked_handle')?.value || cookies().get('drops_handle')?.value;
+    let user = handle ? await prisma.user.findUnique({ where: { handle } }) : null;
+    if (!user) user = await prisma.user.findFirst(); // Fallback for demo
+
+    // We use queryRaw because the database table HAS the fields but the client might be stale
+    let rawDrops;
+    if (quotedId) {
+      rawDrops = await prisma.$queryRaw`
+        SELECT 
+          d.*,
+          u.id as "author_id",
+          u.name as "author_name",
+          u.handle as "author_handle",
+          qd.id as "q_id",
+          qd.text as "q_text",
+          qd.mediaUrl as "q_mediaUrl",
+          qd.mediaType as "q_mediaType",
+          qu.name as "q_author_name",
+          qu.handle as "q_author_handle",
+          EXISTS(SELECT 1 FROM "SavedDrop" sd WHERE sd."dropId" = d.id AND sd."userId" = ${user?.id || ''}) as "isSaved"
+        FROM "Drop" d
+        JOIN "User" u ON d."authorId" = u.id
+        LEFT JOIN "Drop" qd ON d."quotedId" = qd.id
+        LEFT JOIN "User" qu ON qd."authorId" = qu.id
+        WHERE d."quotedId" = ${quotedId}
+        ORDER BY d."createdAt" ASC
+      `;
+    } else {
+      rawDrops = await prisma.$queryRaw`
+        SELECT 
+          d.*,
+          u.id as "author_id",
+          u.name as "author_name",
+          u.handle as "author_handle",
+          qd.id as "q_id",
+          qd.text as "q_text",
+          qd.mediaUrl as "q_mediaUrl",
+          qd.mediaType as "q_mediaType",
+          qu.name as "q_author_name",
+          qu.handle as "q_author_handle",
+          EXISTS(SELECT 1 FROM "SavedDrop" sd WHERE sd."dropId" = d.id AND sd."userId" = ${user?.id || ''}) as "isSaved"
+        FROM "Drop" d
+        JOIN "User" u ON d."authorId" = u.id
+        LEFT JOIN "Drop" qd ON d."quotedId" = qd.id
+        LEFT JOIN "User" qu ON qd."authorId" = qu.id
+        WHERE d."createdAt" <= datetime('now')
+        ORDER BY d."isPinned" DESC, d."createdAt" DESC
+      `;
+    }
 
     // Map raw results back to the expected shape (nesting author)
     const drops = (rawDrops as any[]).map(d => ({
       ...d,
-      isPinned: Boolean(d.isPinned), // SQLite store bool as 0/1
+      isPinned: Boolean(d.isPinned), 
+      isSaved: Boolean(d.isSaved),
       author: {
         id: d.author_id,
         name: d.author_name,

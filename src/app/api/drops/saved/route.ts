@@ -30,7 +30,10 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     });
 
-    const drops = savedDropsRelations.map(rel => rel.drop);
+    const drops = savedDropsRelations.map(rel => ({
+      ...rel.drop,
+      isSaved: true
+    }));
 
     return NextResponse.json(drops);
   } catch (err: any) {

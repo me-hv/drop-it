@@ -19,6 +19,20 @@ export default function PostBox({ isModal }: PostBoxProps) {
   const [text, setText] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+  
+  React.useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/users/me");
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUser(data);
+        }
+      } catch (e) {}
+    }
+    loadUser();
+  }, []);
   
   // Unified Media State
   const [files, setFiles] = React.useState<File[]>([]);
@@ -63,7 +77,8 @@ export default function PostBox({ isModal }: PostBoxProps) {
   }, [showEmojiPicker]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
+    const target = e.target as HTMLInputElement;
+    const selectedFiles = Array.from(target.files || []);
     if (selectedFiles.length === 0) return;
 
     const newFiles = [...files, ...selectedFiles].slice(0, 10);
@@ -178,11 +193,10 @@ export default function PostBox({ isModal }: PostBoxProps) {
   };
 
   function renderPostContent() {
-    const handle = typeof window !== "undefined" ? localStorage.getItem("drops_handle") : null;
     return (
       <div className="flex gap-4 p-6 bg-black/5">
-        <div className="h-12 w-12 rounded-none bg-primary shrink-0 border border-white/10 flex items-center justify-center text-sm font-black text-black uppercase">
-          {handle?.[0] || 'U'}
+        <div className="h-12 w-12 rounded-none bg-primary shrink-0 border border-white/10 flex items-center justify-center text-sm font-black text-black uppercase overflow-hidden">
+          {currentUser?.avatar ? <img src={currentUser.avatar} className="w-full h-full object-cover" /> : (currentUser?.name?.[0] || 'U')}
         </div>
         
         <div className="flex-1 min-w-0">
@@ -208,7 +222,7 @@ export default function PostBox({ isModal }: PostBoxProps) {
                     </div>
                   )}
                   <button 
-                    onClick={() => removeFile(i)}
+                    onClick={(e: React.MouseEvent) => removeFile(i)}
                     className="absolute top-1 right-1 bg-black/80 p-1.5 opacity-0 group-hover:opacity-100 transition-all border border-white/10"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ff4444" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -431,7 +445,7 @@ export default function PostBox({ isModal }: PostBoxProps) {
          <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/80" onClick={() => setShowGifPicker(false)} />
             <div className="relative w-full max-w-[500px] border border-white/10 bg-[#0c0c0e]">
-               <GifPicker onSelect={(url) => { setGifUrl(url); setShowGifPicker(false); }} onClose={() => setShowGifPicker(false)} />
+               <GifPicker onSelect={(url: string) => { setGifUrl(url); setShowGifPicker(false); }} onClose={() => setShowGifPicker(false)} />
             </div>
          </div>
       )}
@@ -440,7 +454,7 @@ export default function PostBox({ isModal }: PostBoxProps) {
          <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/80" onClick={() => setShowSchedulePicker(false)} />
             <div className="relative w-full max-w-[400px] border border-white/10 bg-[#0c0c0e] p-6">
-               <SchedulePicker onConfirm={(date) => { setScheduledDate(date); setShowSchedulePicker(false); }} onClose={() => setShowSchedulePicker(false)} />
+               <SchedulePicker onConfirm={(date: Date) => { setScheduledDate(date); setShowSchedulePicker(false); }} onClose={() => setShowSchedulePicker(false)} />
             </div>
          </div>
       )}
@@ -449,7 +463,7 @@ export default function PostBox({ isModal }: PostBoxProps) {
          <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/80" onClick={() => setShowLocationPicker(false)} />
             <div className="relative w-full max-w-[400px] border border-white/10 bg-[#0c0c0e] p-6">
-               <LocationPicker onConfirm={(loc) => { setLocation(loc); setShowLocationPicker(false); }} onClose={() => setShowLocationPicker(false)} />
+               <LocationPicker onConfirm={(loc: string) => { setLocation(loc); setShowLocationPicker(false); }} onClose={() => setShowLocationPicker(false)} />
             </div>
          </div>
       )}
