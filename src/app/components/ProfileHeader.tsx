@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type User = {
   id: string;
@@ -25,6 +26,34 @@ export default function ProfileHeader({ initialUser }: { initialUser: User }) {
   const [formData, setFormData] = useState<User>(initialUser);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/users/me")
+      .then(res => res.json())
+      .then(data => setCurrentUser(data))
+      .catch(err => console.error("Failed to fetch current user", err));
+  }, []);
+
+  const handleMessage = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/messages/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: user.id })
+      });
+      if (res.ok) {
+        const conv = await res.json();
+        router.push(`/messages?id=${conv.id}`);
+      }
+    } catch (err) {
+      setError("Failed to start conversation");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const bannerInputRef = React.useRef<HTMLInputElement>(null);
   const avatarInputRef = React.useRef<HTMLInputElement>(null);
@@ -151,12 +180,25 @@ export default function ProfileHeader({ initialUser }: { initialUser: User }) {
                 </button>
               </>
             ) : (
-              <button 
-                onClick={() => { setFormData(user); setIsEditing(true); }}
-                className="px-6 py-2 rounded-full border border-white/20 font-bold hover:bg-white/5 transition-all text-[15px]"
-              >
-                Edit profile
-              </button>
+              <>
+                {currentUser && currentUser.id !== user.id && (
+                  <button 
+                    onClick={handleMessage}
+                    disabled={loading}
+                    className="px-6 py-2 rounded-full border border-primary text-primary font-bold hover:bg-primary/5 transition-all text-[15px] disabled:opacity-50"
+                  >
+                    Message
+                  </button>
+                )}
+                {currentUser && currentUser.id === user.id && (
+                  <button 
+                    onClick={() => { setFormData(user); setIsEditing(true); }}
+                    className="px-6 py-2 rounded-full border border-white/20 font-bold hover:bg-white/5 transition-all text-[15px]"
+                  >
+                    Edit profile
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

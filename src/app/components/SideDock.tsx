@@ -42,7 +42,7 @@ export default function SideDock() {
       icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 
     },
     { 
-      label: "NOTIFS", 
+      label: "UPDATES", 
       href: "/updates", 
       icon: <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg> 
     },
@@ -114,10 +114,10 @@ export default function SideDock() {
                   : 'text-white/30 border-transparent hover:text-white/60 hover:bg-white/[0.01]'
                 }`}
               >
-                <div className={`w-5 h-5 flex items-center justify-center flex-shrink-0 ${isActive ? 'text-primary' : ''}`}>
+                <div className={`w-5 h-5 flex items-center justify-center flex-shrink-0 ${isActive ? 'text-primary' : 'text-white/60'}`}>
                   {item.icon}
                 </div>
-                <span className={`ml-6 font-bold text-[11px] uppercase tracking-[0.3em] whitespace-nowrap ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+                <span className={`ml-6 font-bold text-[11px] uppercase tracking-[0.3em] whitespace-nowrap ${isActive ? 'opacity-100 text-white' : 'opacity-60 text-white/70'}`}>
                   {item.label}
                 </span>
               </Link>
@@ -127,47 +127,51 @@ export default function SideDock() {
       </div>
 
       {/* Footer Actions */}
-      <div className="pb-8 flex flex-col relative">
+      <div className="pb-8 flex flex-col relative px-4">
         {settingsItem && (
            <Link 
               href={settingsItem.href}
-              className={`group flex h-14 w-full items-center px-8 transition-all duration-200 border-l-2 ${
+              className={`group flex h-14 w-full items-center px-4 transition-all duration-200 rounded-none mb-2 ${
                 pathname === settingsItem.href 
-                ? 'bg-white/[0.03] text-white border-primary' 
-                : 'text-white/20 border-transparent hover:text-white'
+                ? 'bg-white/[0.05] text-white border-none' 
+                : 'text-white/40 hover:text-white hover:bg-white/[0.02]'
               }`}
             >
-              <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+              <div className={`w-5 h-5 flex items-center justify-center flex-shrink-0 ${pathname === settingsItem.href ? 'text-primary' : ''}`}>
                 {settingsItem.icon}
               </div>
-              <span className="ml-6 font-bold text-[11px] uppercase tracking-[0.3em] whitespace-nowrap opacity-40 group-hover:opacity-100">
+              <span className={`ml-6 font-bold text-[11px] uppercase tracking-[0.3em] whitespace-nowrap ${pathname === settingsItem.href ? 'opacity-100' : 'opacity-60'}`}>
                 {settingsItem.label}
               </span>
             </Link>
         )}
         
         {/* User Card */}
-        <div className="px-4 mt-4">
+        <div className="relative">
            {showLogoutConfirm && (
-             <div className="absolute bottom-[calc(100%-10px)] left-4 right-4 mb-2 bg-[#121214] border border-white/10 rounded-xl py-2 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
-                <button onClick={handleSignOut} className="w-full text-left px-4 py-3 text-[10px] font-black text-red-500 hover:bg-white/5 uppercase tracking-widest transition-colors">
-                  Log out @{user?.handle || 'unknown'}
+             <div className="absolute bottom-[calc(100%+8px)] left-0 right-0 bg-[#000000] border border-white/[0.08] rounded-none py-1 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200 z-[100] backdrop-blur-2xl">
+                <button 
+                  onClick={handleSignOut} 
+                  className="w-full text-center px-4 py-4 text-[10px] font-black text-red-500 hover:bg-red-500/[0.05] uppercase tracking-[0.2em] transition-all flex flex-col items-center gap-1 group/logout"
+                >
+                  <span className="opacity-40 group-hover:opacity-100 transition-opacity">Disconnect Signal</span>
+                  <span className="text-white group-hover:text-red-500 transition-colors">Log out @{user?.handle || 'unknown'}</span>
                 </button>
              </div>
            )}
            <div 
              onClick={() => setShowLogoutConfirm(!showLogoutConfirm)}
-             className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all cursor-pointer group"
+             className={`flex items-center gap-3 p-3 rounded-none transition-all cursor-pointer group ${showLogoutConfirm ? 'bg-white/[0.05]' : 'hover:bg-white/[0.03]'}`}
            >
-              <div className="h-10 w-10 rounded-none bg-primary shrink-0 overflow-hidden flex items-center justify-center text-xs font-black text-black">
+              <div className="h-10 w-10 rounded-none bg-primary shrink-0 overflow-hidden flex items-center justify-center text-xs font-black text-black border border-white/10 shadow-lg shadow-primary/10">
                 {user?.image ? <img src={user.image} className="w-full h-full object-cover" /> : (user?.name?.[0] || 'U')}
               </div>
               <div className="flex flex-col min-w-0">
                  <span className="font-black text-[11px] text-white uppercase tracking-wider truncate">{user?.name || 'SYNCING...'}</span>
-                 <span className="text-white/20 text-[10px] uppercase tracking-tighter truncate">@{user?.handle || '...'}</span>
+                 <span className="text-white/30 text-[10px] uppercase tracking-tighter truncate font-bold">@{user?.handle || '...'}</span>
               </div>
-              <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-white/20 hover:text-white">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
               </div>
            </div>
         </div>

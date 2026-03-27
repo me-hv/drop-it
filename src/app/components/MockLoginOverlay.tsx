@@ -9,6 +9,7 @@ export default function MockLoginOverlay() {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -22,24 +23,42 @@ export default function MockLoginOverlay() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!handle.trim()) return;
+    setError("");
+    
+    if (!handle.trim()) {
+      setError("Please enter a username or email");
+      return;
+    }
+    if (!password.trim()) {
+      setError("Please enter a password");
+      return;
+    }
     
     setLoading(true);
     try {
-      // Mock auth logic remains handle-based for simplicity
-      const res = await fetch("/api/auth/mock", {
+      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+      const body = isLogin 
+        ? { handle, password }
+        : { handle, email, password };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ handle }),
+        body: JSON.stringify(body),
       });
       
+      const data = await res.json();
+
       if (res.ok) {
-        localStorage.setItem("drops_handle", handle);
+        localStorage.setItem("drops_handle", data.user.handle);
         setIsLoggedIn(true);
         window.location.reload();
+      } else {
+        setError(data.error || "Authentication failed");
       }
     } catch (err) {
       console.error(err);
+      setError("An unexpected error occurred. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -86,12 +105,21 @@ export default function MockLoginOverlay() {
                 {isLogin ? "Welcome Back" : "Join Flow"}
               </h2>
               <button 
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError("");
+                }}
                 className="text-primary font-black text-[10px] tracking-widest uppercase hover:opacity-100 opacity-60 transition-opacity"
               >
                 {isLogin ? "Register Account" : "Return to Log In"}
               </button>
            </div>
+
+           {error && (
+             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-wider animate-in fade-in slide-in-from-top-2 duration-200">
+               {error}
+             </div>
+           )}
 
            <form onSubmit={handleSubmit} className="space-y-6">
               {!isLogin && (

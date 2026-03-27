@@ -20,6 +20,7 @@ model User {
   location    String?
   website     String?
   birthDate   String?
+  password    String?
   drops       Drop[]
   totalDrops  Int      @default(0)
   totalPosts  Int      @default(0)
@@ -29,6 +30,8 @@ model User {
   following   Follow[] @relation("follower")
   pollVotes   PollVote[]
   savedDrops  SavedDrop[]
+  conversations Conversation[] @relation("UserConversations")
+  sentMessages  Message[]      @relation("SentMessages")
   createdAt   DateTime @default(now())
 }
 
@@ -101,4 +104,23 @@ model SavedDrop {
   createdAt DateTime @default(now())
 
   @@unique([userId, dropId])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  users     User[]    @relation("UserConversations")
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  text           String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  senderId       String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  createdAt      DateTime     @default(now())
+  isRead         Boolean      @default(false)
 }

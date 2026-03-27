@@ -14,19 +14,19 @@
 }
 
 .dark {
-  --background: 240 10% 2.4%;  /* #0a0a0c - True Deep Charcoal */
+  --background: 0 0% 0%;  /* Pure #000000 */
   --foreground: 0 0% 90%;
   --primary: 15 100% 50%;    /* SoundCloud Orange - Branding */
   --accent: 262 50% 40%;    /* Muted Violet - Keeping some Tech-Noir */
   --muted: 240 3.7% 8%;
   --muted-foreground: 240 5% 64.9%;
-  --card: 240 10% 6%;
+  --card: 0 0% 0%;
   --border: 240 3.7% 20%;   /* Slightly cleaner borders */
 }
 
 @layer base {
   body {
-    background-color: #0a0a0c;
+    background-color: #000000;
     color: hsl(var(--foreground));
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     letter-spacing: -0.01em;
@@ -34,7 +34,7 @@
 }
 
 .glass {
-  @apply bg-white/[0.01] backdrop-blur-xl border border-white/5;
+  @apply bg-transparent border border-white/5;
 }
 
 .subtle-shadow {
